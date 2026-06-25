@@ -71,80 +71,83 @@ function Lightbox({ images, index, onClose, onPrev, onNext, onSetIndex }: {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ backgroundColor: 'rgba(0,0,0,0.92)' }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+      style={{ backgroundColor: 'rgba(20,26,24,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
       onClick={onClose}
     >
-      {/* Close */}
-      <button
-        className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full transition-colors"
-        style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }}
-        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; }}
-        onClick={(e) => { e.stopPropagation(); onClose(); }}
-      >
-        <X className="w-5 h-5" />
-      </button>
-
-      {/* Counter */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold"
-        style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
-        {index + 1} / {images.length}
-      </div>
-
-      {/* Prev */}
-      {images.length > 1 && (
-        <button
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full transition-colors"
-          style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; }}
-          onClick={(e) => { e.stopPropagation(); onPrev(); }}
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-      )}
-
-      {/* Image */}
-      <img
-        src={images[index]}
-        alt={`Photo ${index + 1}`}
-        className="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
-        style={{ userSelect: 'none' }}
+      <div
+        className="relative w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+        style={{ backgroundColor: '#2a3330', border: '1px solid rgba(136,152,147,0.18)', maxHeight: '88vh' }}
         onClick={(e) => e.stopPropagation()}
-      />
-
-      {/* Next */}
-      {images.length > 1 && (
-        <button
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full transition-colors"
-          style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; }}
-          onClick={(e) => { e.stopPropagation(); onNext(); }}
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-      )}
-
-      {/* Thumbnail strip */}
-      {images.length > 1 && (
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 px-4" onClick={(e) => e.stopPropagation()}>
-          {images.map((src, i) => (
-            <button
-              key={i}
-              onClick={() => onSetIndex(i)}
-              className="w-12 h-12 rounded overflow-hidden transition-all duration-150 shrink-0"
-              style={{
-                border: i === index ? '2px solid #d41f27' : '2px solid rgba(255,255,255,0.2)',
-                opacity: i === index ? 1 : 0.5,
-              }}
-            >
-              <img src={src} alt="" className="w-full h-full object-cover" />
-            </button>
-          ))}
+      >
+        {/* Top bar: counter + close */}
+        <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ borderBottom: '1px solid rgba(136,152,147,0.15)' }}>
+          <span className="text-xs font-semibold tracking-wide" style={{ color: '#b5c5c1' }}>
+            {index + 1} <span style={{ color: '#7a8a87' }}>/ {images.length}</span>
+          </span>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full transition-colors"
+            style={{ backgroundColor: '#37423f', color: '#b5c5c1' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#d41f27'; e.currentTarget.style.color = 'white'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#37423f'; e.currentTarget.style.color = '#b5c5c1'; }}
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-      )}
+
+        {/* Image area */}
+        <div className="relative flex items-center justify-center p-3 sm:p-4" style={{ backgroundColor: '#222a28' }}>
+          <img
+            src={images[index]}
+            alt={`Photo ${index + 1}`}
+            className="max-h-[64vh] max-w-full object-contain rounded-lg"
+            style={{ userSelect: 'none' }}
+          />
+
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={onPrev}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg"
+                style={{ backgroundColor: 'rgba(42,51,48,0.92)', color: '#b5c5c1' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#d41f27'; e.currentTarget.style.color = 'white'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(42,51,48,0.92)'; e.currentTarget.style.color = '#b5c5c1'; }}
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={onNext}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg"
+                style={{ backgroundColor: 'rgba(42,51,48,0.92)', color: '#b5c5c1' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#d41f27'; e.currentTarget.style.color = 'white'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(42,51,48,0.92)'; e.currentTarget.style.color = '#b5c5c1'; }}
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Thumbnail strip */}
+        {images.length > 1 && (
+          <div className="flex gap-2 px-4 py-3 overflow-x-auto shrink-0" style={{ borderTop: '1px solid rgba(136,152,147,0.15)' }}>
+            {images.map((src, i) => (
+              <button
+                key={i}
+                onClick={() => onSetIndex(i)}
+                className="w-12 h-12 rounded-lg overflow-hidden transition-all duration-150 shrink-0"
+                style={{
+                  border: i === index ? '2px solid #d41f27' : '2px solid transparent',
+                  opacity: i === index ? 1 : 0.55,
+                }}
+              >
+                <img src={src} alt="" className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>,
     document.body,
   );
