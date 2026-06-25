@@ -283,7 +283,7 @@ export default function Dashboard({ userEmail, profile }: DashboardProps) {
       {activeTab === 'clients' && (
         <ClientsPage
           brokers={brokers}
-          properties={properties.map(p => ({ id: p.id, client_id: p.client_id }))}
+          properties={properties.map(p => ({ id: p.id, client_id: p.client_id, client_ids: p.client_ids }))}
           onClientsChange={setClients}
         />
       )}

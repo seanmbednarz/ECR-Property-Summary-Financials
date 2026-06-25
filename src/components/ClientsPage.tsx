@@ -5,7 +5,7 @@ import { Broker, Client } from '../types';
 
 interface ClientsPageProps {
   brokers: Broker[];
-  properties: { id: string; client_id: string | null }[];
+  properties: { id: string; client_id: string | null; client_ids?: string[] }[];
   onClientsChange: (clients: Client[]) => void;
 }
 
@@ -385,7 +385,9 @@ export default function ClientsPage({ brokers, properties, onClientsChange }: Cl
   }
 
   function propCountFor(clientId: string) {
-    return properties.filter(p => p.client_id === clientId).length;
+    // Assignments live in the property_clients junction (client_ids); also honor
+    // the legacy single client_id for any older single-assignment properties.
+    return properties.filter(p => (p.client_ids ?? []).includes(clientId) || p.client_id === clientId).length;
   }
 
   async function handleDelete(id: string) {
