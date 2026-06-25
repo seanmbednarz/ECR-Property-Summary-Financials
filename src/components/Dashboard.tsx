@@ -242,6 +242,7 @@ export default function Dashboard({ userEmail, profile }: DashboardProps) {
             setDetailProperty(prev => prev ? { ...prev, brochure_url: url } : prev);
             setProperties(prev => prev.map(p => p.id === propertyId ? { ...p, brochure_url: url } : p));
           }}
+          onEdit={(p) => setEditProperty(p)}
         />
         {notesProperty && (
           <NotesDrawer
@@ -249,6 +250,23 @@ export default function Dashboard({ userEmail, profile }: DashboardProps) {
             userEmail={userEmail}
             onClose={() => setNotesProperty(null)}
             onNotesCountChange={handleNotesCountChange}
+          />
+        )}
+        {editProperty && (
+          <EditPropertyModal
+            property={editProperty}
+            onClose={() => setEditProperty(null)}
+            onSaved={updated => {
+              setProperties(prev => prev.map(p => p.id === updated.id ? updated : p));
+              setDetailProperty(prev => prev && prev.id === updated.id ? updated : prev);
+              setEditProperty(null);
+            }}
+            onDeleted={id => {
+              setProperties(prev => prev.filter(p => p.id !== id));
+              if (detailProperty?.id === id) setDetailProperty(null);
+              setEditProperty(null);
+            }}
+            clients={clients}
           />
         )}
       </>

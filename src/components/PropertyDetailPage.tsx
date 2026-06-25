@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, Heart, MessageSquare, MapPin, ExternalLink, ChevronLeft, ChevronRight, Download, Upload, X, ZoomIn } from 'lucide-react';
+import { ArrowLeft, Heart, MessageSquare, MapPin, ExternalLink, ChevronLeft, ChevronRight, Download, Upload, X, ZoomIn, Pencil } from 'lucide-react';
 import { Property, Client } from '../types';
 import ECRLogo from '../assets/ECR_Logo.svg';
 import { safeHttpUrl } from '../lib/placeholders';
@@ -31,6 +31,7 @@ interface PropertyDetailPageProps {
   onFavoriteToggle: (id: string, current: boolean) => void;
   onOpenNotes: (p: Property) => void;
   onBrochureUploaded?: (propertyId: string, url: string) => void;
+  onEdit?: (p: Property) => void;
 }
 
 function fmt$(v: number | null | undefined) {
@@ -163,6 +164,7 @@ export default function PropertyDetailPage({
   onFavoriteToggle,
   onOpenNotes,
   onBrochureUploaded,
+  onEdit,
 }: PropertyDetailPageProps) {
   const [imgIdx, setImgIdx] = useState(0);
   const [imgError, setImgError] = useState(false);
@@ -269,6 +271,17 @@ export default function PropertyDetailPage({
         </div>
 
         <div className="flex items-center gap-2.5">
+          {isAdmin && onEdit && (
+            <button
+              onClick={() => onEdit(property)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+              style={{ backgroundColor: '#37423f', color: '#b5c5c1' }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#d41f27'; e.currentTarget.style.color = 'white'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#37423f'; e.currentTarget.style.color = '#b5c5c1'; }}
+            >
+              <Pencil className="w-3.5 h-3.5" /> Edit Property
+            </button>
+          )}
           <img src={ECRLogo} alt="ECR" className="h-7 w-auto" />
           {client && (
             <>
