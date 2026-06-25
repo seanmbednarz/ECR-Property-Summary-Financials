@@ -96,12 +96,13 @@ function Lightbox({ images, index, onClose, onPrev, onNext, onSetIndex }: {
           </button>
         </div>
 
-        {/* Image area — fixed height so the lightbox stays the same size between photos */}
-        <div className="relative flex items-center justify-center p-3 sm:p-4" style={{ backgroundColor: '#222a28', height: '62vh' }}>
+        {/* Image area — fixed 3:2 frame; photos fill it (object-cover) so every one
+            renders at exactly the same size regardless of its own aspect ratio. */}
+        <div className="relative w-full" style={{ backgroundColor: '#222a28', aspectRatio: '3 / 2', maxHeight: '70vh' }}>
           <img
             src={images[index]}
             alt={`Photo ${index + 1}`}
-            className="max-h-full max-w-full object-contain rounded-lg"
+            className="absolute inset-0 w-full h-full object-cover"
             style={{ userSelect: 'none' }}
           />
 
