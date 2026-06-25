@@ -184,6 +184,12 @@ export default function PropertyDetailPage({
   const heroUrl = safeHttpUrl(property.hero_image_url);
   const images = heroUrl && !photos.includes(heroUrl) ? [heroUrl, ...photos] : photos;
 
+  // Footer "Prepared by" brokers only apply in a specific-client view; the
+  // "All Clients" view (no client) isn't tied to any brokers, so show none.
+  const footerBrokers = client
+    ? (property.brokers?.length ? property.brokers : allBrokers.slice(0, 2))
+    : [];
+
   useEffect(() => {
     if (imgIdx >= images.length && images.length > 0) setImgIdx(0);
   }, [images.length]);
@@ -589,18 +595,20 @@ export default function PropertyDetailPage({
 
         {/* Mobile footer: brokers in 2 columns, then logo + tagline row */}
         <div className="md:hidden px-4 py-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            {(property.brokers?.length ? property.brokers : allBrokers.slice(0, 2)).map(b => (
-              <div key={b.id} className="flex items-start gap-2">
-                <BrokerAvatar name={b.name} photoUrl={b.photo_url} />
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold leading-tight text-white">{b.name}</p>
-                  {b.phone && <a href={`tel:${b.phone.replace(/\D/g, '')}`} className="text-xs block" style={{ color: '#889893' }}>{b.phone}</a>}
-                  {b.email && <a href={`mailto:${b.email}`} className="text-xs block truncate" style={{ color: '#889893' }}>{b.email}</a>}
+          {footerBrokers.length > 0 && (
+            <div className="grid grid-cols-2 gap-3">
+              {footerBrokers.map(b => (
+                <div key={b.id} className="flex items-start gap-2">
+                  <BrokerAvatar name={b.name} photoUrl={b.photo_url} />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold leading-tight text-white">{b.name}</p>
+                    {b.phone && <a href={`tel:${b.phone.replace(/\D/g, '')}`} className="text-xs block" style={{ color: '#889893' }}>{b.phone}</a>}
+                    {b.email && <a href={`mailto:${b.email}`} className="text-xs block truncate" style={{ color: '#889893' }}>{b.email}</a>}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
           <div className="flex items-center justify-between pt-1" style={{ borderTop: '1px solid rgba(136,152,147,0.15)' }}>
             <img src={ECRLogo} alt="ECR" className="h-6 w-auto" />
             <p className="text-xs font-bold uppercase tracking-widest" style={{ color: '#d41f27' }}>Beyond Real Estate.</p>
@@ -610,27 +618,31 @@ export default function PropertyDetailPage({
         {/* Desktop footer (md+): matches Dashboard footer exactly */}
         <div className="hidden md:flex flex-wrap items-center gap-4 px-4 sm:px-6 py-3">
           <img src={ECRLogo} alt="ECR" className="h-6 w-auto shrink-0" />
-          <div className="h-5 w-px shrink-0 hidden sm:block" style={{ backgroundColor: 'rgba(136,152,147,0.2)' }} />
-          <span className="text-xs uppercase tracking-widest hidden sm:block" style={{ color: '#b5c5c1' }}>Prepared by</span>
-          {(property.brokers?.length ? property.brokers : allBrokers.slice(0, 2)).map((broker, i) => (
-            <div key={broker.id} className="flex items-center gap-2">
-              {i > 0 && <div className="h-5 w-px hidden sm:block" style={{ backgroundColor: 'rgba(136,152,147,0.15)' }} />}
-              <BrokerAvatar name={broker.name} photoUrl={broker.photo_url} />
-              <div>
-                <p className="text-xs font-semibold leading-tight text-white">{broker.name}</p>
-                {broker.phone && (
-                  <a href={`tel:${broker.phone.replace(/\D/g, '')}`} className="text-xs transition-colors block" style={{ color: '#889893' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = 'white'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = '#889893'; }}>{broker.phone}</a>
-                )}
-                {broker.email && (
-                  <a href={`mailto:${broker.email}`} className="text-xs transition-colors block" style={{ color: '#889893' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = 'white'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = '#889893'; }}>{broker.email}</a>
-                )}
-              </div>
-            </div>
-          ))}
+          {footerBrokers.length > 0 && (
+            <>
+              <div className="h-5 w-px shrink-0 hidden sm:block" style={{ backgroundColor: 'rgba(136,152,147,0.2)' }} />
+              <span className="text-xs uppercase tracking-widest hidden sm:block" style={{ color: '#b5c5c1' }}>Prepared by</span>
+              {footerBrokers.map((broker, i) => (
+                <div key={broker.id} className="flex items-center gap-2">
+                  {i > 0 && <div className="h-5 w-px hidden sm:block" style={{ backgroundColor: 'rgba(136,152,147,0.15)' }} />}
+                  <BrokerAvatar name={broker.name} photoUrl={broker.photo_url} />
+                  <div>
+                    <p className="text-xs font-semibold leading-tight text-white">{broker.name}</p>
+                    {broker.phone && (
+                      <a href={`tel:${broker.phone.replace(/\D/g, '')}`} className="text-xs transition-colors block" style={{ color: '#889893' }}
+                        onMouseEnter={e => { e.currentTarget.style.color = 'white'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#889893'; }}>{broker.phone}</a>
+                    )}
+                    {broker.email && (
+                      <a href={`mailto:${broker.email}`} className="text-xs transition-colors block" style={{ color: '#889893' }}
+                        onMouseEnter={e => { e.currentTarget.style.color = 'white'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#889893'; }}>{broker.email}</a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
           <div className="h-5 w-px shrink-0 hidden lg:block" style={{ backgroundColor: 'rgba(136,152,147,0.15)' }} />
           <p className="text-xs hidden lg:block" style={{ color: '#b5c5c1' }}>
             ECR // 114 W 7th St // Suite 1000 // Austin, TX 78701 //
