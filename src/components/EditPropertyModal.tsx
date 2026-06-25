@@ -249,7 +249,7 @@ export default function EditPropertyModal({ property, onClose, onSaved, onDelete
           if (uploaded) {
             await supabase.from('property_photos').insert({
               property_id: property.id,
-              storage_path: path,
+              storage_path: uploaded.replace(/^.*\/property-photos\//, ''),
               display_order: startOrder,
               created_by: user?.id ?? null,
             });

@@ -265,10 +265,10 @@ export default function AddPropertyModal({ onClose, onSaved, clients = [], defau
           const ext = file.name.split('.').pop() ?? 'jpg';
           const path = `${slug}/${slug}-${i + 1}.${ext}`;
           try {
-            await uploadFile('property-photos', path, file);
+            const uploaded = await uploadFile('property-photos', path, file);
             await supabase.from('property_photos').insert({
               property_id: propData.id,
-              storage_path: path,
+              storage_path: uploaded.replace(/^.*\/property-photos\//, ''),
               display_order: i,
               created_by: user?.id ?? null,
             });
