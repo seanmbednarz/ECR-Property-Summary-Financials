@@ -34,13 +34,11 @@ export default function Header({
   const [showClientMenu, setShowClientMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Clients see only Properties; brokers see Properties + Clients (no Brokers tab);
-  // admins see everything.
-  const visibleTabs = userRole === 'client'
-    ? ALL_TABS.filter(t => t.key === 'properties')
-    : userRole === 'broker'
-      ? ALL_TABS.filter(t => t.key !== 'brokers')
-      : ALL_TABS;
+  // Only admins manage Clients/Brokers. Brokers and clients see just Properties;
+  // brokers switch between their clients via the "Viewing as" dropdown.
+  const visibleTabs = userRole === 'admin'
+    ? ALL_TABS
+    : ALL_TABS.filter(t => t.key === 'properties');
 
   useEffect(() => {
     if (!showClientMenu) return;
