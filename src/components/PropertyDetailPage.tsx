@@ -385,7 +385,8 @@ export default function PropertyDetailPage({
               </div>
             </div>
 
-            {/* Thumbnail strip */}
+            {/* Thumbnail strip — only when there's more than one image */}
+            {(loading || images.length > 1) && (
             <div className="flex gap-2 mt-3">
               {loading ? (
                 Array.from({ length: 4 }).map((_, i) => (
@@ -408,6 +409,7 @@ export default function PropertyDetailPage({
                 ))
               )}
             </div>
+            )}
 
             {/* Floor plans */}
             {!loading && floorPlanUrls.length > 0 && (
