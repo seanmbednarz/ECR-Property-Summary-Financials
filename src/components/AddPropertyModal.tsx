@@ -1,10 +1,11 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X, Upload, MapPin, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { resizeImageForUpload } from '../lib/resizeImage';
 import { internalizeRemoteUrl, isExternalUrl } from '../lib/remoteImage';
 import { Property, Client } from '../types';
 import { PROPERTY_TYPES, LISTING_STATUSES, statusColor } from '../lib/propertyMeta';
+import { AddressSuggestion, searchAddresses as geocodeSearch, geocodeAddress } from '../lib/geocode';
 
 interface AddPropertyModalProps {
   onClose: () => void;
@@ -26,22 +27,6 @@ const LEASE_TYPES = ['Full Service', 'NNN', 'Modified Gross', 'Gross'];
 
 function slugify(s: string) {
   return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `prop-${Date.now()}`;
-}
-
-interface AddressSuggestion {
-  display_name: string;
-  lat: string;
-  lon: string;
-}
-
-async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'ECR-Property-Portal/1.0' } });
-    const data = await res.json();
-    if (data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-  } catch {}
-  return null;
 }
 
 export default function AddPropertyModal({ onClose, onSaved, clients = [], defaultClientId }: AddPropertyModalProps) {
@@ -115,10 +100,8 @@ export default function AddPropertyModal({ onClose, onSaved, clients = [], defau
   async function searchAddresses(query: string) {
     if (query.trim().length < 4) { setAddressSuggestions([]); return; }
     try {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`;
-      const res = await fetch(url, { headers: { 'User-Agent': 'ECR-Property-Portal/1.0' } });
-      const data: AddressSuggestion[] = await res.json();
-      setAddressSuggestions(data);
+      const suggestions = await geocodeSearch(query);
+      setAddressSuggestions(suggestions);
       setShowSuggestions(true);
     } catch {
       setAddressSuggestions([]);
@@ -132,9 +115,9 @@ export default function AddPropertyModal({ onClose, onSaved, clients = [], defau
   }
 
   function selectSuggestion(s: AddressSuggestion) {
-    setAddress(s.display_name);
-    setLat(parseFloat(s.lat).toFixed(6));
-    setLng(parseFloat(s.lon).toFixed(6));
+    setAddress(s.label);
+    setLat(s.lat.toFixed(6));
+    setLng(s.lng.toFixed(6));
     setAddressSuggestions([]);
     setShowSuggestions(false);
   }
@@ -432,7 +415,7 @@ export default function AddPropertyModal({ onClose, onSaved, clients = [], defau
                         onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                       >
                         <MapPin className="inline w-3 h-3 mr-1.5 shrink-0" style={{ color: '#d41f27', verticalAlign: 'middle' }} />
-                        {s.display_name}
+                        {s.label}
                       </button>
                     ))}
                   </div>

@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X, Upload, MapPin, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { resizeImageForUpload } from '../lib/resizeImage';
 import { internalizeRemoteUrl, isExternalUrl } from '../lib/remoteImage';
 import { Property, Client } from '../types';
 import { PROPERTY_TYPES, LISTING_STATUSES, statusColor } from '../lib/propertyMeta';
+import { AddressSuggestion, searchAddresses, geocodeAddress } from '../lib/geocode';
 
 interface EditPropertyModalProps {
   property: Property;
@@ -22,16 +23,6 @@ interface SuiteRow {
   op_exp: string;
   available: string;
   tour_url: string;
-}
-
-async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'ECR-Property-Portal/1.0' } });
-    const data = await res.json();
-    if (data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-  } catch {}
-  return null;
 }
 
 async function uploadFile(bucket: string, path: string, file: File): Promise<string> {
@@ -75,6 +66,43 @@ export default function EditPropertyModal({ property, onClose, onSaved, onDelete
 
   const [name, setName] = useState(property.name);
   const [address, setAddress] = useState(property.address);
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const addressDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const addressWrapperRef = useRef<HTMLDivElement>(null);
+
+  function handleAddressChange(value: string) {
+    setAddress(value);
+    if (addressDebounceRef.current) clearTimeout(addressDebounceRef.current);
+    addressDebounceRef.current = setTimeout(async () => {
+      if (value.trim().length < 4) { setAddressSuggestions([]); return; }
+      try {
+        const suggestions = await searchAddresses(value);
+        setAddressSuggestions(suggestions);
+        setShowSuggestions(true);
+      } catch {
+        setAddressSuggestions([]);
+      }
+    }, 350);
+  }
+
+  function selectSuggestion(s: AddressSuggestion) {
+    setAddress(s.label);
+    setLat(s.lat.toFixed(6));
+    setLng(s.lng.toFixed(6));
+    setAddressSuggestions([]);
+    setShowSuggestions(false);
+  }
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (addressWrapperRef.current && !addressWrapperRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
   const [propertyTypes, setPropertyTypes] = useState<string[]>(property.property_types?.length ? property.property_types : (property.property_type ? [property.property_type] : []));
   const [listingStatus, setListingStatus] = useState<string[]>(property.listing_status ?? []);
   const [market, setMarket] = useState(property.market ?? '');
@@ -349,7 +377,42 @@ export default function EditPropertyModal({ property, onClose, onSaved, onDelete
             </div>
             <div>
               <label className={labelCls} style={labelStyle}>Address *</label>
-              <input className={inp} style={inpStyle} value={address} onChange={e => setAddress(e.target.value)} {...inpFocus} />
+              <div className="relative" ref={addressWrapperRef}>
+                <input
+                  className={inp}
+                  style={inpStyle}
+                  value={address}
+                  onChange={e => handleAddressChange(e.target.value)}
+                  placeholder="123 Main St, Austin, TX 78701"
+                  autoComplete="off"
+                  {...inpFocus}
+                  onFocus={e => { inpFocus.onFocus(e); if (addressSuggestions.length > 0) setShowSuggestions(true); }}
+                />
+                {showSuggestions && addressSuggestions.length > 0 && (
+                  <div
+                    className="absolute left-0 right-0 top-full mt-1 rounded-xl overflow-hidden shadow-xl z-50"
+                    style={{ backgroundColor: 'white', border: '1px solid #dedad3' }}
+                  >
+                    {addressSuggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onMouseDown={() => selectSuggestion(s)}
+                        className="w-full text-left px-3 py-2.5 text-sm transition-colors"
+                        style={{
+                          borderTop: i > 0 ? '1px solid #e5e1d8' : undefined,
+                          color: '#1e2624',
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f7f5f1')}
+                        onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      >
+                        <MapPin className="inline w-3 h-3 mr-1.5 shrink-0" style={{ color: '#d41f27', verticalAlign: 'middle' }} />
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
